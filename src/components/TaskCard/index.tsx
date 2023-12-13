@@ -9,6 +9,7 @@ import DeleteModal from "../DeleteModal";
 
 const TaskCard = ({ task, onEdit, onDelete }: any) => {
     const { title, priority, status, progress } = task;
+
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const handleDeleteClick = () => {
         setShowDeleteModal(true);

@@ -43,7 +43,9 @@ const AddEditTaskForm: React.FC<AddEditTaskFormProps> = ({
     if (!taskTitle.trim()) {
       return;
     }
+
     console.log("Submitting edited task:", updatedTask);
+
     if (taskToEdit) {
       const updatedTask = {
         id: taskToEdit.id,
@@ -51,6 +53,8 @@ const AddEditTaskForm: React.FC<AddEditTaskFormProps> = ({
         priority: priority,
         progress: progress,
       };
+
+      console.log("Updated Task Data:", updatedTask);
 
       onEditTask(taskToEdit.id, updatedTask);
     } else {
@@ -61,6 +65,7 @@ const AddEditTaskForm: React.FC<AddEditTaskFormProps> = ({
         progress: progress,
       });
     }
+
     setTaskTitle('');
     setPriority('low');
     setProgress('Todo');

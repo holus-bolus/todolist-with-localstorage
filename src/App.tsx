@@ -1,20 +1,19 @@
-import React, { useEffect, useState } from 'react';
-import { ReactComponent as Add } from './assets/icons/add.svg';
+import React, {useEffect, useState} from 'react';
+import {ReactComponent as Add} from './assets/icons/add.svg';
 import AddEditTaskForm from './components/AddEditTaskForm';
 import Button from './components/Button';
 import TaskCard from './components/TaskCard';
 import './App.scss';
-import { Task as TaskInterface } from './Task';
+import {Task as TaskInterface} from './Task';
 
 
 const App = () => {
-    const [showAddEditModal, setShowAddEditModal] = useState(false);
+    const initialTaskList = require('./data/taskList.json').taskList;
 
-    const initialTaskList = localStorage.getItem('taskList')
-        ? JSON.parse(localStorage.getItem('taskList') as string)
-        : require('./data/taskList.json').taskList;
+    const [showAddEditModal, setShowAddEditModal] = useState(false);
     const [taskList, setTaskList] = useState<TaskInterface[]>(initialTaskList);
     const [editingTask, setEditingTask] = useState<TaskInterface | null>(null);
+    const [forceRender, setForceRender] = useState(false);
     const generateTemporaryId = () => {
         return (Math.random() * 1000).toString();
     };
@@ -29,12 +28,9 @@ const App = () => {
 
     useEffect(() => {
         fetchTaskList();
+        setForceRender((prev) => !prev);
     }, []);
 
-
-    useEffect(() => {
-        localStorage.setItem('taskList', JSON.stringify(taskList));
-    }, [taskList]);
 
 
     useEffect(() => {
@@ -47,24 +43,30 @@ const App = () => {
     }, []);
 
     const addTask = (newTask: TaskInterface) => {
-        const updatedTaskList = [...taskList, { ...newTask, id: generateTemporaryId() }];
+        const updatedTaskList = [...taskList, {...newTask, id: generateTemporaryId()}];
+        setTaskList(updatedTaskList);
+        localStorage.setItem('taskList', JSON.stringify(updatedTaskList));
+        console.log(taskList);
+    };
+
+    const editTask = (taskId: string, updatedTask: TaskInterface) => {
+        const updatedTaskList = taskList.map((task) => {
+            if (task.id === taskId) {
+                return { ...task, ...updatedTask };
+            }
+            return task;
+        });
+
+        console.log("Updated Task List:", updatedTaskList);
+
         setTaskList(updatedTaskList);
         localStorage.setItem('taskList', JSON.stringify(updatedTaskList));
     };
 
-    const editTask = (taskId: any, updatedTask: TaskInterface) => {
-        setTaskList(currentTaskList => {
-            return currentTaskList.map(task => {
-                if (task.id === taskId) {
-                    console.log("Original task:", task);
-                    console.log("Updated task:", updatedTask);
-                    return { ...task, ...updatedTask };
-                }
-                return task;
-            });
-        });
+    const handleEditTask = (editedTask: TaskInterface) => {
+        editTask(editedTask.id, editedTask);
+        setShowAddEditModal(false);
     };
-
 
 
 
@@ -74,6 +76,10 @@ const App = () => {
         localStorage.setItem('taskList', JSON.stringify(updatedTaskList));
     };
 
+    useEffect(() => {
+        localStorage.setItem('taskList', JSON.stringify(taskList));
+        console.log("Task List State Updated:", taskList);
+    }, [taskList, forceRender]);
 
     return (
         <div className="container">
@@ -82,7 +88,7 @@ const App = () => {
                     <h2>Task List</h2>
                     <Button
                         title="Add Task"
-                        icon={<Add />}
+                        icon={<Add/>}
                         onClick={() => {
                             setShowAddEditModal(true);
                             setEditingTask(null);
@@ -98,10 +104,10 @@ const App = () => {
                                 setEditingTask(task);
                                 setShowAddEditModal(true);
                             }}
-                            percentage={task.progress || 0}
                             onDelete={deleteTask}
                         />
                     ))}
+
 
                 </div>
             </div>
@@ -111,9 +117,9 @@ const App = () => {
                     show={showAddEditModal}
                     onClose={() => setShowAddEditModal(false)}
                     onAddTask={(newTask: TaskInterface) => addTask(newTask)}
-                    onEditTask={(editedTask: TaskInterface) => {
-                        editTask(editedTask.id, editedTask);
-                        setShowAddEditModal(false);
+                    onEditTask={(task: TaskInterface) => {
+                        setEditingTask(task);
+                        setShowAddEditModal(true);
                     }}
                     taskToEdit={editingTask}
                 />
@@ -121,7 +127,6 @@ const App = () => {
         </div>
     );
 };
-
 
 
 export default App;
